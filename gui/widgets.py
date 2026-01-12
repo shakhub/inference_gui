@@ -1,12 +1,12 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QLabel, QSizePolicy
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QLabel, QSizePolicy
 
 
 class FluidImageLabel(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        self.setAlignment(Qt.AlignCenter)
         self.setStyleSheet("border: 2px dashed #ccc; background-color: #eee;")
         self._pixmap = None
 
@@ -23,8 +23,8 @@ class FluidImageLabel(QLabel):
         if self._pixmap and not self._pixmap.isNull():
             scaled = self._pixmap.scaled(
                 self.size(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.FastTransformation
+                Qt.KeepAspectRatio,
+                Qt.FastTransformation
             )
             super().setPixmap(scaled)
 

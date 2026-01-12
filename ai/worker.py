@@ -1,9 +1,8 @@
 from pathlib import Path
 
 from PIL import Image
-from PIL.ImageQt import ImageQt
-from PyQt6.QtCore import QObject, pyqtSignal
-from PyQt6.QtGui import QImage
+from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtGui import QImage
 
 from ai.inference import generate_visuals, get_inferencer, run_inference_core
 
@@ -46,7 +45,7 @@ class AIWorker(QObject):
             self.error_occurred.emit(f"Inference Error: {str(e)}")
 
     def update_contours(self, thickness):
-        if self.cached_image is None or self.cached_predictions is None:
+        if self.cached_image is None or self.cached_predictions is None or self.cached_time is None:
             return
 
         try:
@@ -56,9 +55,15 @@ class AIWorker(QObject):
             )
             
             # Convert PIL images to QImage inside the thread for efficiency
-            # We use ImageQt but ensure we copy to decouple from PIL
-            qt_heat_map = ImageQt(heat_map).copy()
-            qt_segmentation = ImageQt(segmentation).copy()
+            def pil2qimage(pil_image):
+                if pil_image.mode != "RGBA":
+                    pil_image = pil_image.convert("RGBA")
+                data = pil_image.tobytes("raw", "RGBA")
+                qimage = QImage(data, pil_image.width, pil_image.height, QImage.Format_RGBA8888)
+                return qimage.copy()
+
+            qt_heat_map = pil2qimage(heat_map)
+            qt_segmentation = pil2qimage(segmentation)
 
             self.inference_finished.emit(qt_heat_map, qt_segmentation, inf_time, score, label)
         except Exception as e:

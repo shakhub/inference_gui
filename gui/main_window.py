@@ -2,10 +2,9 @@ import os
 from pathlib import Path
 
 from PIL import Image
-from PIL.ImageQt import ImageQt
-from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal
-from PyQt6.QtGui import QFont, QImage, QPixmap
-from PyQt6.QtWidgets import (
+from PyQt5.QtCore import Qt, QThread, QTimer, pyqtSignal
+from PyQt5.QtGui import QFont, QImage, QPixmap
+from PyQt5.QtWidgets import (
     QCheckBox,
     QFileDialog,
     QFrame,
@@ -100,8 +99,8 @@ class InferenceGUI(QMainWindow):
         
         # Separator line in sidebar
         line = QFrame()
-        line.setFrameShape(QFrame.Shape.HLine)
-        line.setFrameShadow(QFrame.Shadow.Sunken)
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
         sidebar_layout.addWidget(line)
 
         # Buttons in Sidebar
@@ -136,10 +135,10 @@ class InferenceGUI(QMainWindow):
         # Decision Threshold Slider
         sidebar_layout.addSpacing(20)
         self.threshold_label = QLabel("Decision Threshold: 0.50")
-        self.threshold_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        self.threshold_label.setFont(QFont("Arial", 10, QFont.Bold))
         sidebar_layout.addWidget(self.threshold_label)
 
-        self.threshold_slider = QSlider(Qt.Orientation.Horizontal)
+        self.threshold_slider = QSlider(Qt.Horizontal)
         self.threshold_slider.setMinimum(0)
         self.threshold_slider.setMaximum(100)
         self.threshold_slider.setValue(50) # Default 0.5
@@ -149,10 +148,10 @@ class InferenceGUI(QMainWindow):
         # Contour Thickness Slider
         sidebar_layout.addSpacing(20)
         self.contour_label = QLabel("Contour Thickness: 3")
-        self.contour_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        self.contour_label.setFont(QFont("Arial", 10, QFont.Bold))
         sidebar_layout.addWidget(self.contour_label)
 
-        self.contour_slider = QSlider(Qt.Orientation.Horizontal)
+        self.contour_slider = QSlider(Qt.Horizontal)
         self.contour_slider.setMinimum(1)
         self.contour_slider.setMaximum(20)
         self.contour_slider.setValue(3)
@@ -187,10 +186,10 @@ class InferenceGUI(QMainWindow):
         self.lbl_time = QLabel("Time: -")
         self.lbl_label = QLabel("Prediction: -")
         
-        meta_font = QFont("Arial", 14, QFont.Weight.Bold)
+        meta_font = QFont("Arial", 14, QFont.Bold)
         for lbl in [self.lbl_score, self.lbl_time, self.lbl_label]:
             lbl.setFont(meta_font)
-            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lbl.setAlignment(Qt.AlignCenter)
             lbl.setVisible(False) # Hidden by default
             
         header_layout.addStretch()
@@ -203,10 +202,10 @@ class InferenceGUI(QMainWindow):
         
         # Indicator Box (Top Right Square)
         self.status_indicator = QLabel("READY")
-        self.status_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.status_indicator.setFont(QFont("Arial", 20, QFont.Weight.Bold))
+        self.status_indicator.setAlignment(Qt.AlignCenter)
+        self.status_indicator.setFont(QFont("Arial", 20, QFont.Bold))
         self.status_indicator.setMinimumSize(200, 200)
-        self.status_indicator.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.status_indicator.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.status_indicator.setStyleSheet(
             "background-color: #cccccc; border: 1px solid #999; border-radius: 5px;")
         header_layout.addWidget(self.status_indicator)
@@ -216,7 +215,7 @@ class InferenceGUI(QMainWindow):
         # 2. Results Section (Images)
         results_scroll = QScrollArea()
         results_scroll.setWidgetResizable(True)
-        results_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        results_scroll.setFrameShape(QFrame.NoFrame)
         results_widget = QWidget()
         results_layout = QHBoxLayout(results_widget)
         
@@ -240,15 +239,15 @@ class InferenceGUI(QMainWindow):
         layout.setSpacing(2)
 
         title_lbl = QLabel(title)
-        title_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_lbl.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        title_lbl.setAlignment(Qt.AlignCenter)
+        title_lbl.setFont(QFont("Arial", 10, QFont.Bold))
         title_lbl.setSizePolicy(
-            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+            QSizePolicy.Preferred, QSizePolicy.Fixed)
         
         # Use FluidImageLabel for responsive resizing
         img_lbl = FluidImageLabel()
         img_lbl.setAlignment(
-            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+            Qt.AlignTop | Qt.AlignHCenter)
         # Style handles border/bg
         img_lbl.setMinimumSize(200, 200) # Set reasonable minimum
         img_lbl.setText("No Image")
@@ -329,7 +328,10 @@ class InferenceGUI(QMainWindow):
             pixmap = QPixmap(source)
             label_widget.set_image(pixmap)
         elif isinstance(source, Image.Image): # PIL Image
-            qim = ImageQt(source)
+            if source.mode != "RGBA":
+                source = source.convert("RGBA")
+            data = source.tobytes("raw", "RGBA")
+            qim = QImage(data, source.size[0], source.size[1], QImage.Format_RGBA8888)
             pixmap = QPixmap.fromImage(qim)
             label_widget.set_image(pixmap)
         elif isinstance(source, QImage): # QImage (from thread)
